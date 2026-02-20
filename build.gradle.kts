@@ -1,3 +1,5 @@
+
+
 plugins {
     java
     id("org.springframework.boot") version "3.5.11"
@@ -45,7 +47,12 @@ tasks.withType<Test> {
 
 checkstyle {
     toolVersion = "10.12.5"
-    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+}
+
+tasks.withType<Checkstyle> {
     ignoreFailures = false
-    showViolations = true
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
 }
