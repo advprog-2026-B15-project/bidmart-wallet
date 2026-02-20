@@ -2,6 +2,8 @@ plugins {
     java
     id("org.springframework.boot") version "3.5.11"
     id("io.spring.dependency-management") version "1.1.7"
+
+    id 'checkstyle'
 }
 
 group = "com.example"
@@ -37,4 +39,13 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+
+
+checkstyle {
+    toolVersion = "10.12.5"
+    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+    ignoreFailures = false
+    showViolations = true
 }
