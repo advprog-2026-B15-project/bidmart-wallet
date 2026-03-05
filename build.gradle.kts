@@ -1,7 +1,12 @@
+
+
 plugins {
     java
-    id("org.springframework.boot") version "3.5.11"
+    id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.7"
+
+    id("checkstyle")
+    id ("org.sonarqube") version "5.1.0.4882"
 }
 
 group = "com.example"
@@ -37,4 +42,25 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+sonarqube {
+    properties {
+        property("sonar.projectKey", "advprog-2026-B15-project_bidmart-wallet")
+        property("sonar.organization", "advprog-2026-b15-project")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.gradle.skipCompile", "true")
+    }
+}
+
+checkstyle {
+    toolVersion = "10.12.5"
+}
+
+tasks.withType<Checkstyle> {
+    ignoreFailures = false
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
 }
