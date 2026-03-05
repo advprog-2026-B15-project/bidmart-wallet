@@ -1,11 +1,16 @@
 package com.example.wallet.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "wallets")
+@Getter
+@Setter
 public class Wallet {
 
     @Id
@@ -40,31 +45,5 @@ public class Wallet {
         updatedAt = LocalDateTime.now();
     }
 
-    public String getId() {
-        return id;
-    }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public BigDecimal getAvailableBalance() {
-        return availableBalance;
-    }
-
-    public BigDecimal getHeldBalance() {
-        return heldBalance;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public void setAvailableBalance(BigDecimal availableBalance) {
-        this.availableBalance = availableBalance;
-    }
-
-    public void setHeldBalance(BigDecimal heldBalance) {
-        this.heldBalance = heldBalance;
-    }
 }
