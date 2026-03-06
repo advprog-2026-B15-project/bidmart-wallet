@@ -19,4 +19,15 @@ public class WalletService {
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
     }
+
+    public Wallet getWallet(String userId) {
+        return walletRepository.findByUserId(userId)
+                .orElseGet(() -> createWallet(userId));
+    }
+
+    public Wallet createWallet(String userId) {
+        Wallet wallet = new Wallet();
+        wallet.setUserId(userId);
+        return walletRepository.save(wallet);
+    }
 }
