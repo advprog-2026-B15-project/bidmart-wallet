@@ -30,4 +30,6 @@ public class WalletService {
         wallet.setUserId(userId);
         return walletRepository.save(wallet);
     }
+
+
 }
