@@ -11,5 +11,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/wallet")
 public class WalletController {
+    private final WalletService walletService;
+
+    public WalletController(WalletService walletService) {
+        this.walletService = walletService;
+    }
 
 }
