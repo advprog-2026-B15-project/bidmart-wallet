@@ -31,11 +31,29 @@ public class WalletService {
         return walletRepository.save(wallet);
     }
 
-    public List<WalletTransaction> getTransactions(String userId) {
+    public Wallet withdraw(String userId, BigDecimal amount) {
 
         Wallet wallet = getWallet(userId);
 
-        return transactionRepository.findByWalletId(wallet.getId());
-    }
+        if (wallet.getAvailableBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient balance");
+        }
 
+        wallet.setAvailableBalance(
+                wallet.getAvailableBalance().subtract(amount)
+        );
+
+        walletRepository.save(wallet);
+
+        WalletTransaction tx = new WalletTransaction(
+                wallet.getId(),
+                "WITHDRAW",
+                amount,
+                null
+        );
+
+        transactionRepository.save(tx);
+
+        return wallet;
+    }
 }
