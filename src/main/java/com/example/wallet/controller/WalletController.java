@@ -35,4 +35,9 @@ public class WalletController {
         return walletService.withdraw(userId, request.getAmount());
     }
 
+    @GetMapping("/{userId}/transactions")
+    public List<WalletTransaction> transactions(@PathVariable String userId) {
+        return walletService.getTransactions(userId);
+    }
+
 }
