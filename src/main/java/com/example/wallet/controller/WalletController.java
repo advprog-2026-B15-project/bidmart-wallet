@@ -28,5 +28,11 @@ public class WalletController {
 
         return walletService.topUp(userId, request.getAmount());
     }
+    @PostMapping("/{userId}/withdraw")
+    public Wallet withdraw(@PathVariable String userId,
+                           @RequestBody AmountRequest request) {
+
+        return walletService.withdraw(userId, request.getAmount());
+    }
 
 }
