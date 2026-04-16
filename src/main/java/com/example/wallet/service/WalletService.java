@@ -31,6 +31,28 @@ public class WalletService {
         return walletRepository.save(wallet);
     }
 
+    public Wallet topUp(String userId, BigDecimal amount) {
+
+        Wallet wallet = getWallet(userId);
+
+        wallet.setAvailableBalance(
+                wallet.getAvailableBalance().add(amount)
+        );
+
+        walletRepository.save(wallet);
+
+        WalletTransaction tx = new WalletTransaction(
+                wallet.getId(),
+                "TOP_UP",
+                amount,
+                null
+        );
+
+        transactionRepository.save(tx);
+
+        return wallet;
+    }
+
     public Wallet withdraw(String userId, BigDecimal amount) {
 
         Wallet wallet = getWallet(userId);
@@ -57,3 +79,4 @@ public class WalletService {
         return wallet;
     }
 }
+
