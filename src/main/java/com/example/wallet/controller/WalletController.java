@@ -22,4 +22,11 @@ public class WalletController {
         return walletService.getWallet(userId);
     }
 
+    @PostMapping("/{userId}/topup")
+    public Wallet topUp(@PathVariable String userId,
+                        @RequestBody AmountRequest request) {
+
+        return walletService.topUp(userId, request.getAmount());
+    }
+
 }
