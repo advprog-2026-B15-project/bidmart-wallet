@@ -78,5 +78,12 @@ public class WalletService {
 
         return wallet;
     }
+
+    public List<WalletTransaction> getTransactions(String userId) {
+
+        Wallet wallet = getWallet(userId);
+
+        return transactionRepository.findByWalletId(wallet.getId());
+    }
 }
 
