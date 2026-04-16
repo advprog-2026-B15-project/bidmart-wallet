@@ -17,4 +17,9 @@ public class WalletController {
         this.walletService = walletService;
     }
 
+    @GetMapping("/{userId}")
+    public Wallet getWallet(@PathVariable String userId) {
+        return walletService.getWallet(userId);
+    }
+
 }
