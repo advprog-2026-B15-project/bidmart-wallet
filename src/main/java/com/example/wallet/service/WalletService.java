@@ -31,5 +31,11 @@ public class WalletService {
         return walletRepository.save(wallet);
     }
 
+    public List<WalletTransaction> getTransactions(String userId) {
+
+        Wallet wallet = getWallet(userId);
+
+        return transactionRepository.findByWalletId(wallet.getId());
+    }
 
 }
