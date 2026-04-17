@@ -2,6 +2,7 @@
 
 plugins {
     java
+    jacoco
     id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.7"
     id("checkstyle")
@@ -29,17 +30,16 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     compileOnly("org.projectlombok:lombok")
-    implementation ("org.springframework.boot:spring-boot-starter-web")
-    implementation ("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation ("org.postgresql:postgresql")
+    annotationProcessor("org.projectlombok:lombok")
+    runtimeOnly("org.postgresql:postgresql")
+    implementation("org.flywaydb:flyway-core:10.17.0")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    runtimeOnly("org.postgresql:postgresql")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
