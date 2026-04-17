@@ -20,7 +20,8 @@ public class WalletTransaction {
     private String walletId;
 
     @Column(nullable = false)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private TransactionType type;
 
     @Column(nullable = false)
     private BigDecimal amount;
@@ -31,9 +32,7 @@ public class WalletTransaction {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public WalletTransaction() {}
-
-    public WalletTransaction(String walletId, String type, BigDecimal amount, String referenceId) {
+    public WalletTransaction(String walletId, TransactionType type, BigDecimal amount, String referenceId) {
         this.walletId = walletId;
         this.type = type;
         this.amount = amount;
