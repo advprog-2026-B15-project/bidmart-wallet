@@ -109,5 +109,28 @@ public class WalletService {
 
         return wallet;
     }
+
+    public Wallet releaseBalance(String userId, BigDecimal amount, String referenceId) {
+
+        Wallet wallet = getWallet(userId);
+
+        if (wallet.getHeldBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient held balance");
+        }
+
+        wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
+        wallet.setAvailableBalance(wallet.getAvailableBalance().add(amount));
+
+        walletRepository.save(wallet);
+
+        transactionRepository.save(new WalletTransaction(
+                wallet.getId(),
+                TransactionType.RELEASE,
+                amount,
+                referenceId
+        ));
+
+        return wallet;
+    }
 }
 
