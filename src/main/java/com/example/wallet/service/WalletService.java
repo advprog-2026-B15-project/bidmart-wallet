@@ -93,6 +93,11 @@ public class WalletService {
     @Transactional
     public Wallet holdBalance(String user_id, BigDecimal amount, String referenceId) {
 
+        //check if already processed for idempotentcy
+        if (transactionRepository.existsByReferenceId(referenceId)) {
+            return getWallet(user_id);
+        }
+
         Wallet wallet = getWallet(user_id);
 
         if (wallet.getAvailableBalance().compareTo(amount) < 0) {
@@ -117,6 +122,11 @@ public class WalletService {
     @Transactional
     public Wallet releaseBalance(String userId, BigDecimal amount, String referenceId) {
 
+        //check if already processed for idempotentcy
+        if (transactionRepository.existsByReferenceId(referenceId)) {
+            return getWallet(userId);
+        }
+
         Wallet wallet = getWallet(userId);
 
         if (wallet.getHeldBalance().compareTo(amount) < 0) {
@@ -140,6 +150,10 @@ public class WalletService {
 
     @Transactional
     public Wallet convertToPayment(String userId, BigDecimal amount, String referenceId) {
+
+        if (transactionRepository.existsByReferenceId(referenceId)) {
+            return getWallet(userId);
+        }
 
         Wallet wallet = getWallet(userId);
 

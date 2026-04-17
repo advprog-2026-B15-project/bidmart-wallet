@@ -26,7 +26,7 @@ public class WalletTransaction {
     @Column(nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "reference_id")
+    @Column(name = "reference_id", unique = true)
     private String referenceId;
 
     @Column(name = "created_at")
