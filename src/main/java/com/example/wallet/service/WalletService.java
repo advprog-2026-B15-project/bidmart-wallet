@@ -1,5 +1,6 @@
 package com.example.wallet.service;
 
+import com.example.wallet.model.TransactionType;
 import com.example.wallet.model.Wallet;
 import com.example.wallet.model.WalletTransaction;
 import com.example.wallet.repository.WalletRepository;
@@ -43,7 +44,7 @@ public class WalletService {
 
         WalletTransaction tx = new WalletTransaction(
                 wallet.getId(),
-                "TOP_UP",
+                TransactionType.TOP_UP,
                 amount,
                 null
         );
@@ -69,7 +70,7 @@ public class WalletService {
 
         WalletTransaction tx = new WalletTransaction(
                 wallet.getId(),
-                "WITHDRAW",
+                TransactionType.WITHDRAW,
                 amount,
                 null
         );
