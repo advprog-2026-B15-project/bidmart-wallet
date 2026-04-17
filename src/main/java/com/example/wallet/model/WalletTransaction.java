@@ -32,8 +32,6 @@ public class WalletTransaction {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public WalletTransaction() {}
-
     public WalletTransaction(String walletId, TransactionType type, BigDecimal amount, String referenceId) {
         this.walletId = walletId;
         this.type = type;
