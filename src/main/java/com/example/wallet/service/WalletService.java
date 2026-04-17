@@ -6,6 +6,7 @@ import com.example.wallet.model.WalletTransaction;
 import com.example.wallet.repository.WalletRepository;
 import com.example.wallet.repository.WalletTransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -32,6 +33,7 @@ public class WalletService {
         return walletRepository.save(wallet);
     }
 
+    @Transactional
     public Wallet topUp(String userId, BigDecimal amount) {
 
         Wallet wallet = getWallet(userId);
@@ -54,6 +56,7 @@ public class WalletService {
         return wallet;
     }
 
+    @Transactional
     public Wallet withdraw(String userId, BigDecimal amount) {
 
         Wallet wallet = getWallet(userId);
@@ -87,6 +90,7 @@ public class WalletService {
         return transactionRepository.findByWalletId(wallet.getId());
     }
 
+    @Transactional
     public Wallet holdBalance(String user_id, BigDecimal amount, String referenceId) {
 
         Wallet wallet = getWallet(user_id);
@@ -110,6 +114,7 @@ public class WalletService {
         return wallet;
     }
 
+    @Transactional
     public Wallet releaseBalance(String userId, BigDecimal amount, String referenceId) {
 
         Wallet wallet = getWallet(userId);
@@ -133,6 +138,7 @@ public class WalletService {
         return wallet;
     }
 
+    @Transactional
     public Wallet convertToPayment(String userId, BigDecimal amount, String referenceId) {
 
         Wallet wallet = getWallet(userId);
