@@ -26,8 +26,8 @@ public class WalletTransaction {
     @Column(nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "reference_id", unique = true)
-    private String referenceId;
+    @Column(name = "auct_id", unique = true)
+    private String auctId;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -36,7 +36,7 @@ public class WalletTransaction {
         this.walletId = walletId;
         this.type = type;
         this.amount = amount;
-        this.referenceId = referenceId;
+        this.auctId = referenceId;
     }
 
     @PrePersist
