@@ -107,7 +107,7 @@ public class WalletService {
     @Transactional
     public Wallet holdBalance(String user_id, BigDecimal amount, String auct_id) {
 
-        //check if already processed for idempotentcy
+
         if (transactionRepository.existsByAuctId(auct_id)) {
             return getWallet(user_id);
         }
@@ -123,12 +123,26 @@ public class WalletService {
 
         walletRepository.save(wallet);
 
+        BigDecimal before = wallet.getAvailableBalance();
+        BigDecimal after = before.subtract(amount);
+
+        wallet.setAvailableBalance(after);
+        wallet.setHeldBalance(wallet.getHeldBalance().add(amount));
+
+        walletRepository.save(wallet);
+
         transactionRepository.save(new WalletTransaction(
                 wallet.getId(),
                 TransactionType.HOLD,
                 amount,
-                auct_id
+                auct_id,
+                before,
+                after
         ));
+
+        eventPublisher.publishEvent(
+                new BalanceHeldEvent(user_id, amount, auct_id)
+        );
 
         return wallet;
     }
@@ -189,5 +203,4 @@ public class WalletService {
         return wallet;
     }
 }
-
 
