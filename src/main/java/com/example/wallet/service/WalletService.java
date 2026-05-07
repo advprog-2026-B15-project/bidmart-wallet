@@ -76,9 +76,10 @@ public class WalletService {
             throw new RuntimeException("Insufficient balance");
         }
 
-        wallet.setAvailableBalance(
-                wallet.getAvailableBalance().subtract(amount)
-        );
+        BigDecimal before = wallet.getAvailableBalance();
+        BigDecimal after = before.subtract(amount);
+
+        wallet.setAvailableBalance(after);
 
         walletRepository.save(wallet);
 
@@ -86,7 +87,9 @@ public class WalletService {
                 wallet.getId(),
                 TransactionType.WITHDRAW,
                 amount,
-                null
+                null,
+                before,
+                after
         );
 
         transactionRepository.save(tx);
