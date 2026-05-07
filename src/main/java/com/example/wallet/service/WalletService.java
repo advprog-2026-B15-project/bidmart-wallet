@@ -1,12 +1,12 @@
 package com.example.wallet.service;
 
-import com.example.wallet.model.TransactionType;
-import com.example.wallet.model.Wallet;
-import com.example.wallet.model.WalletTransaction;
+import com.example.wallet.event.*;
+import com.example.wallet.model.*;
 import com.example.wallet.repository.WalletRepository;
 import com.example.wallet.repository.WalletTransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,10 +16,14 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository transactionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public WalletService(WalletRepository walletRepository,WalletTransactionRepository transactionRepository) {
+    public WalletService(WalletRepository walletRepository, WalletTransactionRepository transactionRepository,
+            ApplicationEventPublisher eventPublisher) {
+
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public Wallet getWallet(String user_id) {
