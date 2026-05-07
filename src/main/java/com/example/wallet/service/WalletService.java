@@ -42,9 +42,10 @@ public class WalletService {
 
         Wallet wallet = getWallet(user_id);
 
-        wallet.setAvailableBalance(
-                wallet.getAvailableBalance().add(amount)
-        );
+        BigDecimal before = wallet.getAvailableBalance();
+        BigDecimal after = before.add(amount);
+
+        wallet.setAvailableBalance(after);
 
         walletRepository.save(wallet);
 
@@ -52,10 +53,16 @@ public class WalletService {
                 wallet.getId(),
                 TransactionType.TOP_UP,
                 amount,
-                null
+                null,
+                before,
+                after
         );
 
         transactionRepository.save(tx);
+
+        eventPublisher.publishEvent(
+                new TopUpCompletedEvent(user_id, amount)
+        );
 
         return wallet;
     }
