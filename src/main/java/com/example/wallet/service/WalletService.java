@@ -121,8 +121,6 @@ public class WalletService {
         wallet.setAvailableBalance(wallet.getAvailableBalance().subtract(amount));
         wallet.setHeldBalance(wallet.getHeldBalance().add(amount));
 
-        walletRepository.save(wallet);
-
         BigDecimal before = wallet.getAvailableBalance();
         BigDecimal after = before.subtract(amount);
 
@@ -164,8 +162,6 @@ public class WalletService {
         wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
         wallet.setAvailableBalance(wallet.getAvailableBalance().add(amount));
 
-        walletRepository.save(wallet);
-
         BigDecimal before = wallet.getHeldBalance();
         BigDecimal after = before.subtract(amount);
 
@@ -205,14 +201,25 @@ public class WalletService {
 
         wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
 
+        BigDecimal before = wallet.getHeldBalance();
+        BigDecimal after = before.subtract(amount);
+
+        wallet.setHeldBalance(after);
+
         walletRepository.save(wallet);
 
         transactionRepository.save(new WalletTransaction(
                 wallet.getId(),
                 TransactionType.PAYMENT,
                 amount,
-                auct_id
+                auct_id,
+                before,
+                after
         ));
+
+        eventPublisher.publishEvent(
+                new PaymentCompletedEvent(user_id, amount, auct_id)
+        );
 
         return wallet;
     }
