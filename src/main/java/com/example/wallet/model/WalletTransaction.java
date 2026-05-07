@@ -26,22 +26,39 @@ public class WalletTransaction {
     @Column(nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "reference_id")
-    private String referenceId;
+    @Column(name = "auct_id", unique = true)
+    private String auctId;
+
+    // ✅ AUDIT TRAIL
+    @Column(name = "balance_before", nullable = false)
+    private BigDecimal balanceBefore;
+
+    @Column(name = "balance_after", nullable = false)
+    private BigDecimal balanceAfter;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public WalletTransaction(String walletId, TransactionType type, BigDecimal amount, String referenceId) {
+    public WalletTransaction() {}
+
+    public WalletTransaction(
+            String walletId,
+            TransactionType type,
+            BigDecimal amount,
+            String referenceId,
+            BigDecimal balanceBefore,
+            BigDecimal balanceAfter
+    ) {
         this.walletId = walletId;
         this.type = type;
         this.amount = amount;
-        this.referenceId = referenceId;
+        this.auctId = referenceId;
+        this.balanceBefore = balanceBefore;
+        this.balanceAfter = balanceAfter;
     }
 
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
     }
-
 }
