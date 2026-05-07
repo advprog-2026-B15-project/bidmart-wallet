@@ -22,21 +22,21 @@ public class WalletService {
         this.transactionRepository = transactionRepository;
     }
 
-    public Wallet getWallet(String userId) {
-        return walletRepository.findByUserId(userId)
-                .orElseGet(() -> createWallet(userId));
+    public Wallet getWallet(String user_id) {
+        return walletRepository.findByUserId(user_id)
+                .orElseGet(() -> createWallet(user_id));
     }
 
-    public Wallet createWallet(String userId) {
+    public Wallet createWallet(String user_id) {
         Wallet wallet = new Wallet();
-        wallet.setUserId(userId);
+        wallet.setUserId(user_id);
         return walletRepository.save(wallet);
     }
 
     @Transactional
-    public Wallet topUp(String userId, BigDecimal amount) {
+    public Wallet topUp(String user_id, BigDecimal amount) {
 
-        Wallet wallet = getWallet(userId);
+        Wallet wallet = getWallet(user_id);
 
         wallet.setAvailableBalance(
                 wallet.getAvailableBalance().add(amount)
@@ -57,9 +57,9 @@ public class WalletService {
     }
 
     @Transactional
-    public Wallet withdraw(String userId, BigDecimal amount) {
+    public Wallet withdraw(String user_id, BigDecimal amount) {
 
-        Wallet wallet = getWallet(userId);
+        Wallet wallet = getWallet(user_id);
 
         if (wallet.getAvailableBalance().compareTo(amount) < 0) {
             throw new RuntimeException("Insufficient balance");
@@ -83,18 +83,18 @@ public class WalletService {
         return wallet;
     }
 
-    public List<WalletTransaction> getTransactions(String userId) {
+    public List<WalletTransaction> getTransactions(String user_id) {
 
-        Wallet wallet = getWallet(userId);
+        Wallet wallet = getWallet(user_id);
 
         return transactionRepository.findByWalletId(wallet.getId());
     }
 
     @Transactional
-    public Wallet holdBalance(String user_id, BigDecimal amount, String referenceId) {
+    public Wallet holdBalance(String user_id, BigDecimal amount, String auct_id) {
 
         //check if already processed for idempotentcy
-        if (transactionRepository.existsByReferenceId(referenceId)) {
+        if (transactionRepository.existsByAuctId(auct_id)) {
             return getWallet(user_id);
         }
 
@@ -113,17 +113,17 @@ public class WalletService {
                 wallet.getId(),
                 TransactionType.HOLD,
                 amount,
-                referenceId
+                auct_id
         ));
 
         return wallet;
     }
 
     @Transactional
-    public Wallet releaseBalance(String userId, BigDecimal amount, String referenceId) {
+    public Wallet releaseBalance(String userId, BigDecimal amount, String auct_id) {
 
         //check if already processed for idempotentcy
-        if (transactionRepository.existsByReferenceId(referenceId)) {
+        if (transactionRepository.existsByAuctId(auct_id)) {
             return getWallet(userId);
         }
 
@@ -142,20 +142,20 @@ public class WalletService {
                 wallet.getId(),
                 TransactionType.RELEASE,
                 amount,
-                referenceId
+                auct_id
         ));
 
         return wallet;
     }
 
     @Transactional
-    public Wallet convertToPayment(String userId, BigDecimal amount, String referenceId) {
+    public Wallet convertToPayment(String user_id, BigDecimal amount, String auct_id) {
 
-        if (transactionRepository.existsByReferenceId(referenceId)) {
-            return getWallet(userId);
+        if (transactionRepository.existsByAuctId(auct_id)) {
+            return getWallet(user_id);
         }
 
-        Wallet wallet = getWallet(userId);
+        Wallet wallet = getWallet(user_id);
 
         if (wallet.getHeldBalance().compareTo(amount) < 0) {
             throw new RuntimeException("Insufficient held balance");
@@ -169,7 +169,7 @@ public class WalletService {
                 wallet.getId(),
                 TransactionType.PAYMENT,
                 amount,
-                referenceId
+                auct_id
         ));
 
         return wallet;
