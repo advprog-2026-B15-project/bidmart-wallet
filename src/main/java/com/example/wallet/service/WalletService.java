@@ -150,7 +150,7 @@ public class WalletService {
     @Transactional
     public Wallet releaseBalance(String userId, BigDecimal amount, String auct_id) {
 
-        //check if already processed for idempotentcy
+
         if (transactionRepository.existsByAuctId(auct_id)) {
             return getWallet(userId);
         }
@@ -166,12 +166,26 @@ public class WalletService {
 
         walletRepository.save(wallet);
 
+        BigDecimal before = wallet.getHeldBalance();
+        BigDecimal after = before.subtract(amount);
+
+        wallet.setHeldBalance(after);
+        wallet.setAvailableBalance(wallet.getAvailableBalance().add(amount));
+
+        walletRepository.save(wallet);
+
         transactionRepository.save(new WalletTransaction(
                 wallet.getId(),
                 TransactionType.RELEASE,
                 amount,
-                auct_id
+                auct_id,
+                before,
+                after
         ));
+
+        eventPublisher.publishEvent(
+                new BalanceReleasedEvent(userId, amount, auct_id)
+        );
 
         return wallet;
     }
@@ -203,27 +217,6 @@ public class WalletService {
         return wallet;
     }
 
-    public Wallet releaseBalance(String userId, BigDecimal amount, String referenceId) {
 
-        Wallet wallet = getWallet(userId);
-
-        if (wallet.getHeldBalance().compareTo(amount) < 0) {
-            throw new RuntimeException("Insufficient held balance");
-        }
-
-        wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
-        wallet.setAvailableBalance(wallet.getAvailableBalance().add(amount));
-
-        walletRepository.save(wallet);
-
-        transactionRepository.save(new WalletTransaction(
-                wallet.getId(),
-                TransactionType.RELEASE,
-                amount,
-                referenceId
-        ));
-
-        return wallet;
-    }
 }
 
