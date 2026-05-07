@@ -6,6 +6,7 @@ import com.example.wallet.model.WalletTransaction;
 import com.example.wallet.repository.WalletRepository;
 import com.example.wallet.repository.WalletTransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -21,20 +22,21 @@ public class WalletService {
         this.transactionRepository = transactionRepository;
     }
 
-    public Wallet getWallet(String userId) {
-        return walletRepository.findByUserId(userId)
-                .orElseGet(() -> createWallet(userId));
+    public Wallet getWallet(String user_id) {
+        return walletRepository.findByUserId(user_id)
+                .orElseGet(() -> createWallet(user_id));
     }
 
-    public Wallet createWallet(String userId) {
+    public Wallet createWallet(String user_id) {
         Wallet wallet = new Wallet();
-        wallet.setUserId(userId);
+        wallet.setUserId(user_id);
         return walletRepository.save(wallet);
     }
 
-    public Wallet topUp(String userId, BigDecimal amount) {
+    @Transactional
+    public Wallet topUp(String user_id, BigDecimal amount) {
 
-        Wallet wallet = getWallet(userId);
+        Wallet wallet = getWallet(user_id);
 
         wallet.setAvailableBalance(
                 wallet.getAvailableBalance().add(amount)
@@ -54,9 +56,10 @@ public class WalletService {
         return wallet;
     }
 
-    public Wallet withdraw(String userId, BigDecimal amount) {
+    @Transactional
+    public Wallet withdraw(String user_id, BigDecimal amount) {
 
-        Wallet wallet = getWallet(userId);
+        Wallet wallet = getWallet(user_id);
 
         if (wallet.getAvailableBalance().compareTo(amount) < 0) {
             throw new RuntimeException("Insufficient balance");
@@ -80,11 +83,96 @@ public class WalletService {
         return wallet;
     }
 
-    public List<WalletTransaction> getTransactions(String userId) {
+    public List<WalletTransaction> getTransactions(String user_id) {
+
+        Wallet wallet = getWallet(user_id);
+
+        return transactionRepository.findByWalletId(wallet.getId());
+    }
+
+    @Transactional
+    public Wallet holdBalance(String user_id, BigDecimal amount, String auct_id) {
+
+        //check if already processed for idempotentcy
+        if (transactionRepository.existsByAuctId(auct_id)) {
+            return getWallet(user_id);
+        }
+
+        Wallet wallet = getWallet(user_id);
+
+        if (wallet.getAvailableBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient balance");
+        }
+
+        wallet.setAvailableBalance(wallet.getAvailableBalance().subtract(amount));
+        wallet.setHeldBalance(wallet.getHeldBalance().add(amount));
+
+        walletRepository.save(wallet);
+
+        transactionRepository.save(new WalletTransaction(
+                wallet.getId(),
+                TransactionType.HOLD,
+                amount,
+                auct_id
+        ));
+
+        return wallet;
+    }
+
+    @Transactional
+    public Wallet releaseBalance(String userId, BigDecimal amount, String auct_id) {
+
+        //check if already processed for idempotentcy
+        if (transactionRepository.existsByAuctId(auct_id)) {
+            return getWallet(userId);
+        }
 
         Wallet wallet = getWallet(userId);
 
-        return transactionRepository.findByWalletId(wallet.getId());
+        if (wallet.getHeldBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient held balance");
+        }
+
+        wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
+        wallet.setAvailableBalance(wallet.getAvailableBalance().add(amount));
+
+        walletRepository.save(wallet);
+
+        transactionRepository.save(new WalletTransaction(
+                wallet.getId(),
+                TransactionType.RELEASE,
+                amount,
+                auct_id
+        ));
+
+        return wallet;
+    }
+
+    @Transactional
+    public Wallet convertToPayment(String user_id, BigDecimal amount, String auct_id) {
+
+        if (transactionRepository.existsByAuctId(auct_id)) {
+            return getWallet(user_id);
+        }
+
+        Wallet wallet = getWallet(user_id);
+
+        if (wallet.getHeldBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient held balance");
+        }
+
+        wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
+
+        walletRepository.save(wallet);
+
+        transactionRepository.save(new WalletTransaction(
+                wallet.getId(),
+                TransactionType.PAYMENT,
+                amount,
+                auct_id
+        ));
+
+        return wallet;
     }
 }
 
