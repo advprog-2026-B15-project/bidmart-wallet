@@ -576,13 +576,6 @@ docker run -p 8080:8080 \
 
 Wallet Service is designed to be deployed as an independent microservice.
 
-Recommended production setup:
-
-```text
-AWS EC2
-└── Docker container: bidmart-wallet
-    └── connects to PostgreSQL wallet database
-```
 
 In the full BidMart architecture:
 
