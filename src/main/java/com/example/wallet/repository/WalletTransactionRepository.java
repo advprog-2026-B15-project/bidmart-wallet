@@ -1,11 +1,14 @@
 package com.example.wallet.repository;
 
+import com.example.wallet.model.TransactionType;
 import com.example.wallet.model.WalletTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 
 public interface WalletTransactionRepository extends JpaRepository<WalletTransaction, String> {
 
-    List<WalletTransaction> findByWalletId(String wallet_id);
-    boolean existsByAuctId(String auct_id);
+    List<WalletTransaction> findByWalletId(String walletId);
+
+    boolean existsByAuctIdAndType(String auctId, TransactionType type);
 }

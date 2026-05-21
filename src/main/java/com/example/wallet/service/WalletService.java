@@ -39,7 +39,7 @@ public class WalletService {
 
     @Transactional
     public Wallet topUp(String user_id, BigDecimal amount) {
-
+        validateAmount(amount);
         Wallet wallet = getWallet(user_id);
 
         BigDecimal before = wallet.getAvailableBalance();
@@ -69,7 +69,7 @@ public class WalletService {
 
     @Transactional
     public Wallet withdraw(String user_id, BigDecimal amount) {
-
+        validateAmount(amount);
         Wallet wallet = getWallet(user_id);
 
         if (wallet.getAvailableBalance().compareTo(amount) < 0) {
@@ -106,9 +106,9 @@ public class WalletService {
 
     @Transactional
     public Wallet holdBalance(String user_id, BigDecimal amount, String auct_id) {
+        validateAmount(amount);
 
-
-        if (transactionRepository.existsByAuctId(auct_id)) {
+        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.HOLD)) {
             return getWallet(user_id);
         }
 
@@ -147,9 +147,9 @@ public class WalletService {
 
     @Transactional
     public Wallet releaseBalance(String userId, BigDecimal amount, String auct_id) {
+        validateAmount(amount);
 
-
-        if (transactionRepository.existsByAuctId(auct_id)) {
+        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.HOLD)) {
             return getWallet(userId);
         }
 
@@ -189,7 +189,9 @@ public class WalletService {
     @Transactional
     public Wallet convertToPayment(String user_id, BigDecimal amount, String auct_id) {
 
-        if (transactionRepository.existsByAuctId(auct_id)) {
+        validateAmount(amount);
+
+        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.HOLD)) {
             return getWallet(user_id);
         }
 
@@ -223,6 +225,12 @@ public class WalletService {
 
         return wallet;
     }
+
+    private void validateAmount(BigDecimal amount) {
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+        throw new RuntimeException("Amount must be greater than zero");
+    }
+}
 
 
 }
