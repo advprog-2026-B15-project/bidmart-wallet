@@ -122,9 +122,6 @@ public class WalletService {
             throw new RuntimeException("Insufficient balance");
         }
 
-        wallet.setAvailableBalance(wallet.getAvailableBalance().subtract(amount));
-        wallet.setHeldBalance(wallet.getHeldBalance().add(amount));
-
         BigDecimal before = wallet.getAvailableBalance();
         BigDecimal after = before.subtract(amount);
 
@@ -153,7 +150,7 @@ public class WalletService {
     public Wallet releaseBalance(String userId, BigDecimal amount, String auct_id) {
         validateAmount(amount);
 
-        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.HOLD)) {
+        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.RELEASE)) {
             return getWallet(userId);
         }
 
@@ -163,14 +160,12 @@ public class WalletService {
             throw new RuntimeException("Insufficient held balance");
         }
 
+        BigDecimal before = wallet.getAvailableBalance();
+
         wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
         wallet.setAvailableBalance(wallet.getAvailableBalance().add(amount));
 
-        BigDecimal before = wallet.getHeldBalance();
-        BigDecimal after = before.subtract(amount);
-
-        wallet.setHeldBalance(after);
-        wallet.setAvailableBalance(wallet.getAvailableBalance().add(amount));
+        BigDecimal after = wallet.getAvailableBalance();
 
         walletRepository.save(wallet);
 
@@ -195,7 +190,7 @@ public class WalletService {
 
         validateAmount(amount);
 
-        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.HOLD)) {
+        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.PAYMENT)) {
             return getWallet(user_id);
         }
 
@@ -205,12 +200,11 @@ public class WalletService {
             throw new RuntimeException("Insufficient held balance");
         }
 
+        BigDecimal before = wallet.getHeldBalance();
+
         wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
 
-        BigDecimal before = wallet.getHeldBalance();
-        BigDecimal after = before.subtract(amount);
-
-        wallet.setHeldBalance(after);
+        BigDecimal after = wallet.getHeldBalance();
 
         walletRepository.save(wallet);
 
