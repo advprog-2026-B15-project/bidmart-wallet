@@ -37,7 +37,7 @@ public class Wallet {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public Wallet() {}
+    
 
     @PrePersist
     public void prePersist() {
