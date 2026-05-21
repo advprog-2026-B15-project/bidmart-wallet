@@ -7,6 +7,8 @@ import com.example.wallet.repository.WalletTransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -39,7 +41,7 @@ public class WalletService {
 
     @Transactional
     public Wallet topUp(String user_id, BigDecimal amount) {
-
+        validateAmount(amount);
         Wallet wallet = getWallet(user_id);
 
         BigDecimal before = wallet.getAvailableBalance();
@@ -69,7 +71,7 @@ public class WalletService {
 
     @Transactional
     public Wallet withdraw(String user_id, BigDecimal amount) {
-
+        validateAmount(amount);
         Wallet wallet = getWallet(user_id);
 
         if (wallet.getAvailableBalance().compareTo(amount) < 0) {
@@ -96,19 +98,21 @@ public class WalletService {
 
         return wallet;
     }
-
-    public List<WalletTransaction> getTransactions(String user_id) {
+    
+    //like ive mentioned in the transaction repo it SHOULD be faster when data gets big but idk for now
+    @Transactional(readOnly = true)
+    public Page<WalletTransaction> getTransactions(String user_id, Pageable pageable) {
 
         Wallet wallet = getWallet(user_id);
 
-        return transactionRepository.findByWalletId(wallet.getId());
+        return transactionRepository.findByWalletIdwithpagination(wallet.getId(), pageable);
     }
 
     @Transactional
     public Wallet holdBalance(String user_id, BigDecimal amount, String auct_id) {
+        validateAmount(amount);
 
-
-        if (transactionRepository.existsByAuctId(auct_id)) {
+        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.HOLD)) {
             return getWallet(user_id);
         }
 
@@ -147,9 +151,9 @@ public class WalletService {
 
     @Transactional
     public Wallet releaseBalance(String userId, BigDecimal amount, String auct_id) {
+        validateAmount(amount);
 
-
-        if (transactionRepository.existsByAuctId(auct_id)) {
+        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.HOLD)) {
             return getWallet(userId);
         }
 
@@ -189,7 +193,9 @@ public class WalletService {
     @Transactional
     public Wallet convertToPayment(String user_id, BigDecimal amount, String auct_id) {
 
-        if (transactionRepository.existsByAuctId(auct_id)) {
+        validateAmount(amount);
+
+        if (transactionRepository.existsByAuctIdAndType(auct_id, TransactionType.HOLD)) {
             return getWallet(user_id);
         }
 
@@ -223,6 +229,12 @@ public class WalletService {
 
         return wallet;
     }
+
+    private void validateAmount(BigDecimal amount) {
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+        throw new RuntimeException("Amount must be greater than zero");
+    }
+}
 
 
 }
