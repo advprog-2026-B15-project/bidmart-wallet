@@ -29,7 +29,7 @@ public class WalletTransaction {
     @Column(name = "auct_id", unique = true)
     private String auctId;
 
-    // ✅ AUDIT TRAIL
+
     @Column(name = "balance_before", nullable = false)
     private BigDecimal balanceBefore;
 

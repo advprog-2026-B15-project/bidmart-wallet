@@ -1,12 +1,12 @@
 package com.example.wallet.service;
 
-import com.example.wallet.model.TransactionType;
-import com.example.wallet.model.Wallet;
-import com.example.wallet.model.WalletTransaction;
+import com.example.wallet.event.*;
+import com.example.wallet.model.*;
 import com.example.wallet.repository.WalletRepository;
 import com.example.wallet.repository.WalletTransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,10 +16,14 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository transactionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public WalletService(WalletRepository walletRepository,WalletTransactionRepository transactionRepository) {
+    public WalletService(WalletRepository walletRepository, WalletTransactionRepository transactionRepository,
+            ApplicationEventPublisher eventPublisher) {
+
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public Wallet getWallet(String user_id) {
@@ -38,9 +42,10 @@ public class WalletService {
 
         Wallet wallet = getWallet(user_id);
 
-        wallet.setAvailableBalance(
-                wallet.getAvailableBalance().add(amount)
-        );
+        BigDecimal before = wallet.getAvailableBalance();
+        BigDecimal after = before.add(amount);
+
+        wallet.setAvailableBalance(after);
 
         walletRepository.save(wallet);
 
@@ -48,10 +53,16 @@ public class WalletService {
                 wallet.getId(),
                 TransactionType.TOP_UP,
                 amount,
-                null
+                null,
+                before,
+                after
         );
 
         transactionRepository.save(tx);
+
+        eventPublisher.publishEvent(
+                new TopUpCompletedEvent(user_id, amount)
+        );
 
         return wallet;
     }
@@ -65,9 +76,10 @@ public class WalletService {
             throw new RuntimeException("Insufficient balance");
         }
 
-        wallet.setAvailableBalance(
-                wallet.getAvailableBalance().subtract(amount)
-        );
+        BigDecimal before = wallet.getAvailableBalance();
+        BigDecimal after = before.subtract(amount);
+
+        wallet.setAvailableBalance(after);
 
         walletRepository.save(wallet);
 
@@ -75,7 +87,9 @@ public class WalletService {
                 wallet.getId(),
                 TransactionType.WITHDRAW,
                 amount,
-                null
+                null,
+                before,
+                after
         );
 
         transactionRepository.save(tx);
@@ -93,7 +107,7 @@ public class WalletService {
     @Transactional
     public Wallet holdBalance(String user_id, BigDecimal amount, String auct_id) {
 
-        //check if already processed for idempotentcy
+
         if (transactionRepository.existsByAuctId(auct_id)) {
             return getWallet(user_id);
         }
@@ -107,14 +121,26 @@ public class WalletService {
         wallet.setAvailableBalance(wallet.getAvailableBalance().subtract(amount));
         wallet.setHeldBalance(wallet.getHeldBalance().add(amount));
 
+        BigDecimal before = wallet.getAvailableBalance();
+        BigDecimal after = before.subtract(amount);
+
+        wallet.setAvailableBalance(after);
+        wallet.setHeldBalance(wallet.getHeldBalance().add(amount));
+
         walletRepository.save(wallet);
 
         transactionRepository.save(new WalletTransaction(
                 wallet.getId(),
                 TransactionType.HOLD,
                 amount,
-                auct_id
+                auct_id,
+                before,
+                after
         ));
+
+        eventPublisher.publishEvent(
+                new BalanceHeldEvent(user_id, amount, auct_id)
+        );
 
         return wallet;
     }
@@ -122,7 +148,7 @@ public class WalletService {
     @Transactional
     public Wallet releaseBalance(String userId, BigDecimal amount, String auct_id) {
 
-        //check if already processed for idempotentcy
+
         if (transactionRepository.existsByAuctId(auct_id)) {
             return getWallet(userId);
         }
@@ -136,14 +162,26 @@ public class WalletService {
         wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
         wallet.setAvailableBalance(wallet.getAvailableBalance().add(amount));
 
+        BigDecimal before = wallet.getHeldBalance();
+        BigDecimal after = before.subtract(amount);
+
+        wallet.setHeldBalance(after);
+        wallet.setAvailableBalance(wallet.getAvailableBalance().add(amount));
+
         walletRepository.save(wallet);
 
         transactionRepository.save(new WalletTransaction(
                 wallet.getId(),
                 TransactionType.RELEASE,
                 amount,
-                auct_id
+                auct_id,
+                before,
+                after
         ));
+
+        eventPublisher.publishEvent(
+                new BalanceReleasedEvent(userId, amount, auct_id)
+        );
 
         return wallet;
     }
@@ -163,16 +201,29 @@ public class WalletService {
 
         wallet.setHeldBalance(wallet.getHeldBalance().subtract(amount));
 
+        BigDecimal before = wallet.getHeldBalance();
+        BigDecimal after = before.subtract(amount);
+
+        wallet.setHeldBalance(after);
+
         walletRepository.save(wallet);
 
         transactionRepository.save(new WalletTransaction(
                 wallet.getId(),
                 TransactionType.PAYMENT,
                 amount,
-                auct_id
+                auct_id,
+                before,
+                after
         ));
+
+        eventPublisher.publishEvent(
+                new PaymentCompletedEvent(user_id, amount, auct_id)
+        );
 
         return wallet;
     }
+
+
 }
 
