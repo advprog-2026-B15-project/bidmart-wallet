@@ -92,7 +92,7 @@ flowchart TD
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-wallet-repository-url>
+git clone https://github.com/advprog-2026-B15-project/bidmart-wallet.git
 cd bidmart-wallet
 ```
 
