@@ -9,7 +9,15 @@ import lombok.Setter;
 @Setter
 @Getter
 @Entity
-@Table(name = "wallet_transactions")
+@Table(
+        name = "wallet_transactions",
+        indexes = {
+                @Index(name = "idx_wallet_tx_wallet_id", columnList = "wallet_id"),
+                @Index(name = "idx_wallet_tx_auct_id", columnList = "auct_id"),
+                @Index(name = "idx_wallet_tx_created_at", columnList = "created_at"),
+                @Index(name = "idx_wallet_tx_type", columnList = "type")
+        }
+)
 public class WalletTransaction {
 
     @Id
