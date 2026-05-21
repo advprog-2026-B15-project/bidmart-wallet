@@ -7,6 +7,8 @@ import com.example.wallet.repository.WalletTransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -96,12 +98,14 @@ public class WalletService {
 
         return wallet;
     }
-
-    public List<WalletTransaction> getTransactions(String user_id) {
+    
+    //like ive mentioned in the transaction repo it SHOULD be faster when data gets big but idk for now
+    @Transactional(readOnly = true)
+    public Page<WalletTransaction> getTransactions(String user_id, Pageable pageable) {
 
         Wallet wallet = getWallet(user_id);
 
-        return transactionRepository.findByWalletId(wallet.getId());
+        return transactionRepository.findByWalletIdwithpagination(wallet.getId(), pageable);
     }
 
     @Transactional
