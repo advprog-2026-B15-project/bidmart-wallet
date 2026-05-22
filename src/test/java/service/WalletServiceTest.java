@@ -156,13 +156,13 @@ class WalletServiceTest {
     void holdBalance_ShouldMoveAvailableToHeldBalance() {
         Wallet wallet = createWallet();
 
-        when(transactionRepository.existsByAuctIdAndType("auction-1", TransactionType.HOLD))
+        when(transactionRepository.existsByIdempotencyKeyAndType("auction-1-user-1-hold", TransactionType.HOLD))
                 .thenReturn(false);
 
         when(walletRepository.findByUserId("user-1"))
                 .thenReturn(Optional.of(wallet));
 
-        walletService.holdBalance("user-1", amount, "auction-1", "auction-1-user-1-hold");
+        walletService.holdBalance("user-1", new BigDecimal("400"), "auction-1", "auction-1-user-1-hold");
 
         assertEquals(new BigDecimal("600"), wallet.getAvailableBalance());
         assertEquals(new BigDecimal("400"), wallet.getHeldBalance());
@@ -186,13 +186,13 @@ class WalletServiceTest {
     void holdBalance_WhenDuplicateRequest_ShouldReturnWalletWithoutSavingTransaction() {
         Wallet wallet = createWallet();
 
-        when(transactionRepository.existsByAuctIdAndType("auction-1", TransactionType.HOLD))
+        when(transactionRepository.existsByIdempotencyKeyAndType("auction-1-user-1-hold", TransactionType.HOLD))
                 .thenReturn(true);
 
         when(walletRepository.findByUserId("user-1"))
                 .thenReturn(Optional.of(wallet));
 
-        Wallet result = walletService.holdBalance("user-1", new BigDecimal("400"), "auction-1");
+        Wallet result = walletService.holdBalance("user-1", new BigDecimal("400"), "auction-1", "auction-1-user-1-hold");
 
         assertEquals(wallet, result);
 
@@ -206,13 +206,13 @@ class WalletServiceTest {
         wallet.setAvailableBalance(new BigDecimal("600"));
         wallet.setHeldBalance(new BigDecimal("400"));
 
-        when(transactionRepository.existsByAuctIdAndType("auction-1", TransactionType.RELEASE))
+        when(transactionRepository.existsByIdempotencyKeyAndType("auction-1-user-1-release", TransactionType.RELEASE))
                 .thenReturn(false);
 
         when(walletRepository.findByUserId("user-1"))
                 .thenReturn(Optional.of(wallet));
 
-        walletService.releaseBalance("user-1", amount, "auction-1", "auction-1-user-1-release");
+        walletService.releaseBalance("user-1", new BigDecimal("400"), "auction-1", "auction-1-user-1-release");
 
         assertEquals(new BigDecimal("1000"), wallet.getAvailableBalance());
         assertEquals(BigDecimal.ZERO, wallet.getHeldBalance());
@@ -226,13 +226,13 @@ class WalletServiceTest {
         wallet.setAvailableBalance(new BigDecimal("600"));
         wallet.setHeldBalance(new BigDecimal("400"));
 
-        when(transactionRepository.existsByAuctIdAndType("auction-1", TransactionType.PAYMENT))
+        when(transactionRepository.existsByIdempotencyKeyAndType("auction-1-user-1-payment", TransactionType.PAYMENT))
                 .thenReturn(false);
 
         when(walletRepository.findByUserId("user-1"))
                 .thenReturn(Optional.of(wallet));
 
-        walletService.convertToPayment("user-1", amount, "auction-1", "auction-1-user-1-payment");
+        walletService.convertToPayment("user-1", new BigDecimal("400"), "auction-1", "auction-1-user-1-payment");
 
         assertEquals(new BigDecimal("600"), wallet.getAvailableBalance());
         assertEquals(BigDecimal.ZERO, wallet.getHeldBalance());
@@ -248,6 +248,7 @@ class WalletServiceTest {
                 wallet.getId(),
                 TransactionType.TOP_UP,
                 new BigDecimal("100"),
+                null,
                 null,
                 new BigDecimal("0"),
                 new BigDecimal("100")

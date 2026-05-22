@@ -1,4 +1,5 @@
 package model;
+
 import org.junit.jupiter.api.Test;
 import com.example.wallet.model.TransactionType;
 import com.example.wallet.model.WalletTransaction;
@@ -16,6 +17,7 @@ class WalletTransactionTest {
                 TransactionType.HOLD,
                 new BigDecimal("500"),
                 "auction-1",
+                "auction-1-user-1-hold",
                 new BigDecimal("1000"),
                 new BigDecimal("500")
         );
@@ -24,6 +26,7 @@ class WalletTransactionTest {
         assertEquals(TransactionType.HOLD, tx.getType());
         assertEquals(new BigDecimal("500"), tx.getAmount());
         assertEquals("auction-1", tx.getAuctId());
+        assertEquals("auction-1-user-1-hold", tx.getIdempotencyKey());
         assertEquals(new BigDecimal("1000"), tx.getBalanceBefore());
         assertEquals(new BigDecimal("500"), tx.getBalanceAfter());
     }
@@ -34,6 +37,7 @@ class WalletTransactionTest {
                 "wallet-1",
                 TransactionType.TOP_UP,
                 new BigDecimal("100"),
+                null,
                 null,
                 BigDecimal.ZERO,
                 new BigDecimal("100")

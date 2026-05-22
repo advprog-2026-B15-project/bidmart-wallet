@@ -28,6 +28,7 @@ class InternalWalletControllerTest {
         request.setUserId("user-1");
         request.setAmount(new BigDecimal("100"));
         request.setAuctId("auction-1");
+        request.setIdempotencyKey("auction-1-user-1-key");
         return request;
     }
 
@@ -38,7 +39,7 @@ class InternalWalletControllerTest {
         Wallet wallet = new Wallet();
         wallet.setUserId("user-1");
 
-        when(walletService.holdBalance("user-1", new BigDecimal("100"), "auction-1"))
+        when(walletService.holdBalance("user-1", new BigDecimal("100"), "auction-1", "auction-1-user-1-key"))
                 .thenReturn(wallet);
 
         Wallet result = internalWalletController.hold(request);
@@ -53,7 +54,7 @@ class InternalWalletControllerTest {
         Wallet wallet = new Wallet();
         wallet.setUserId("user-1");
 
-        when(walletService.releaseBalance("user-1", new BigDecimal("100"), "auction-1"))
+        when(walletService.releaseBalance("user-1", new BigDecimal("100"), "auction-1", "auction-1-user-1-key"))
                 .thenReturn(wallet);
 
         Wallet result = internalWalletController.release(request);
@@ -68,7 +69,7 @@ class InternalWalletControllerTest {
         Wallet wallet = new Wallet();
         wallet.setUserId("user-1");
 
-        when(walletService.convertToPayment("user-1", new BigDecimal("100"), "auction-1"))
+        when(walletService.convertToPayment("user-1", new BigDecimal("100"), "auction-1", "auction-1-user-1-key"))
                 .thenReturn(wallet);
 
         Wallet result = internalWalletController.convert(request);
