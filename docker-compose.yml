@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: bidmart-wallet-db
+    environment:
+      POSTGRES_DB: bidmart_wallet
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - wallet_postgres_data:/var/lib/postgresql/data
+    networks:
+      - wallet-network
+
+  wallet:
+    build: .
+    container_name: bidmart-wallet-app
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/bidmart_wallet
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    networks:
+      - wallet-network
+
+volumes:
+  wallet_postgres_data:
+
+networks:
+  wallet-network:
