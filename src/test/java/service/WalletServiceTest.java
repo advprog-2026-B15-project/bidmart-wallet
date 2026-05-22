@@ -162,7 +162,7 @@ class WalletServiceTest {
         when(walletRepository.findByUserId("user-1"))
                 .thenReturn(Optional.of(wallet));
 
-        walletService.holdBalance("user-1", new BigDecimal("400"), "auction-1");
+        walletService.holdBalance("user-1", amount, "auction-1", "auction-1-user-1-hold");
 
         assertEquals(new BigDecimal("600"), wallet.getAvailableBalance());
         assertEquals(new BigDecimal("400"), wallet.getHeldBalance());
@@ -212,7 +212,7 @@ class WalletServiceTest {
         when(walletRepository.findByUserId("user-1"))
                 .thenReturn(Optional.of(wallet));
 
-        walletService.releaseBalance("user-1", new BigDecimal("400"), "auction-1");
+        walletService.releaseBalance("user-1", amount, "auction-1", "auction-1-user-1-release");
 
         assertEquals(new BigDecimal("1000"), wallet.getAvailableBalance());
         assertEquals(BigDecimal.ZERO, wallet.getHeldBalance());
@@ -232,7 +232,7 @@ class WalletServiceTest {
         when(walletRepository.findByUserId("user-1"))
                 .thenReturn(Optional.of(wallet));
 
-        walletService.convertToPayment("user-1", new BigDecimal("400"), "auction-1");
+        walletService.convertToPayment("user-1", amount, "auction-1", "auction-1-user-1-payment");
 
         assertEquals(new BigDecimal("600"), wallet.getAvailableBalance());
         assertEquals(BigDecimal.ZERO, wallet.getHeldBalance());

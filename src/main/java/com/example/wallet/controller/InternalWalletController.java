@@ -20,7 +20,8 @@ public class InternalWalletController {
         return walletService.holdBalance(
                 request.getUserId(),
                 request.getAmount(),
-                request.getAuctId()
+                request.getAuctId(),
+                request.getIdempotencyKey()
         );
     }
 
@@ -29,7 +30,8 @@ public class InternalWalletController {
         return walletService.releaseBalance(
                 request.getUserId(),
                 request.getAmount(),
-                request.getAuctId()
+                request.getAuctId(),
+                request.getIdempotencyKey()
         );
     }
 
@@ -38,7 +40,8 @@ public class InternalWalletController {
         return walletService.convertToPayment(
                 request.getUserId(),
                 request.getAmount(),
-                request.getAuctId()
+                request.getAuctId(),
+                request.getIdempotencyKey()
         );
     }
 }

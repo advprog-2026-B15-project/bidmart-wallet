@@ -17,4 +17,5 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     Page<WalletTransaction> findByWalletIdOrderByCreatedAtDesc(String walletId, Pageable pageable);
 
     boolean existsByAuctIdAndType(String auctId, TransactionType type);
+    boolean existsByIdempotencyKeyAndType(String idempotencyKey, TransactionType type);
 }

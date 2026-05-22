@@ -14,8 +14,15 @@ import lombok.Setter;
         indexes = {
                 @Index(name = "idx_wallet_tx_wallet_id", columnList = "wallet_id"),
                 @Index(name = "idx_wallet_tx_auct_id", columnList = "auct_id"),
+                @Index(name = "idx_wallet_tx_idempotency_key", columnList = "idempotency_key"),
                 @Index(name = "idx_wallet_tx_created_at", columnList = "created_at"),
                 @Index(name = "idx_wallet_tx_type", columnList = "type")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_wallet_tx_idempotency_type",
+                        columnNames = {"idempotency_key", "type"}
+                )
         }
 )
 public class WalletTransaction {
@@ -34,7 +41,7 @@ public class WalletTransaction {
     @Column(nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "auct_id", unique = true)
+    @Column(name = "auct_id")
     private String auctId;
 
 
@@ -47,20 +54,25 @@ public class WalletTransaction {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "idempotency_key")
+    private String idempotencyKey;
+
     public WalletTransaction() {}
 
     public WalletTransaction(
-            String walletId,
-            TransactionType type,
-            BigDecimal amount,
-            String referenceId,
-            BigDecimal balanceBefore,
-            BigDecimal balanceAfter
+        String walletId,
+        TransactionType type,
+        BigDecimal amount,
+        String auctId,
+        String idempotencyKey,
+        BigDecimal balanceBefore,
+        BigDecimal balanceAfter
     ) {
         this.walletId = walletId;
         this.type = type;
         this.amount = amount;
-        this.auctId = referenceId;
+        this.auctId = auctId;
+        this.idempotencyKey = idempotencyKey;
         this.balanceBefore = balanceBefore;
         this.balanceAfter = balanceAfter;
     }

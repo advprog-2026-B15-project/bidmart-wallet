@@ -1,19 +1,57 @@
 package com.example.wallet.DTO;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class HoldRequest {
 
-    private String user_id;
+    @JsonProperty("userId")
+    private String userId;
+
+    @JsonProperty("amount")
     private BigDecimal amount;
-    private String auct_id; // put id for auctions here
 
-    public String getUserId() { return user_id; }
-    public void setUserId(String user_id) { this.user_id = user_id; }
+    @JsonProperty("auctId")
+    private String auctId;
 
-    public BigDecimal getAmount() { return amount; }
-    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    @JsonProperty("idempotencyKey")
+    private String idempotencyKey;
 
-    public String getAuctId() { return auct_id; }
-    public void setAuctId(String auct_id) { this.auct_id = auct_id; }
+    public HoldRequest() {
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public String getAuctId() {
+        return auctId;
+    }
+
+    public void setAuctId(String auctId) {
+        this.auctId = auctId;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
+    }
 }
