@@ -259,7 +259,7 @@ class WalletServiceTest {
         when(walletRepository.findByUserId("user-1"))
                 .thenReturn(Optional.of(wallet));
 
-        when(transactionRepository.findByWalletIdwithpagination(wallet.getId(), pageRequest))
+        when(transactionRepository.findByWalletIdOrderByCreatedAtDesc(wallet.getId(), pageRequest))
                 .thenReturn(page);
 
         Page<WalletTransaction> result = walletService.getTransactions("user-1", pageRequest);
