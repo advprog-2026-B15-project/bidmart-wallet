@@ -59,7 +59,7 @@ public class WalletService {
                 null,
                 before,
                 after
-        )
+        );
 
         transactionRepository.save(tx);
 
@@ -94,7 +94,7 @@ public class WalletService {
                 null,
                 before,
                 after
-        )
+        );
 
         transactionRepository.save(tx);
 
