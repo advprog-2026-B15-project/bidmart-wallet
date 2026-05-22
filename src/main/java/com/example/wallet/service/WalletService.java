@@ -105,7 +105,7 @@ public class WalletService {
 
         Wallet wallet = getWallet(user_id);
 
-        return transactionRepository.findByWalletIdwithpagination(wallet.getId(), pageable);
+        return transactionRepository.findByWalletIdOrderByCreatedAtDesc(wallet.getId(), pageable);
     }
 
     @Transactional

@@ -12,8 +12,9 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     List<WalletTransaction> findByWalletId(String walletId);
 
-    //this one uses pagination so if theres too much id, its not slow (i think? it shouldnt be a problem for now but if data gets too big it would be nice)
-    Page<WalletTransaction> findByWalletIdwithpagination(String walletId, Pageable pageable);
+    //this one uses pagination so if theres too much id so its not slow 
+    //(i think? it shouldnt be a problem for now but if data gets too big it would be nice)
+    Page<WalletTransaction> findByWalletIdOrderByCreatedAtDesc(String walletId, Pageable pageable);
 
     boolean existsByAuctIdAndType(String auctId, TransactionType type);
 }
