@@ -11,17 +11,31 @@ services:
     networks:
       - wallet-network
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: bidmart-wallet-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - wallet-network
+
   wallet:
     build: .
     container_name: bidmart-wallet-app
     depends_on:
       - postgres
+      - rabbitmq
     ports:
       - "8080:8080"
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/bidmart_wallet
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
+      SPRING_RABBITMQ_ADDRESSES: amqp://guest:guest@rabbitmq:5672
     networks:
       - wallet-network
 
