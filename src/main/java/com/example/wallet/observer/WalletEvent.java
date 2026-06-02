@@ -15,7 +15,7 @@ public class WalletEvent {
     private final Type type;
     private final String userId;
     private final BigDecimal amount;
-    private final String auctionId; // null for TOP_UP_COMPLETED
+    private final String auctionId; // null if TOP_UP_COMPLETED
 
     public WalletEvent(Type type, String userId, BigDecimal amount, String auctionId) {
         this.type = type;
