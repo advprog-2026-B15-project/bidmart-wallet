@@ -65,21 +65,25 @@ jobs:
             "$AWS_EC2_USER@$AWS_EC2_HOST:/tmp/wallet-new.jar"
 
       - name: Deploy on EC2
-        shell: bash
         run: |
           ssh -p "$AWS_EC2_SSH_PORT" -i ~/.ssh/deploy.pem \
             "$AWS_EC2_USER@$AWS_EC2_HOST" "
-            set -euo pipefail
-            docker cp /tmp/wallet-new.jar $CONTAINER_NAME:/app/app.jar
-            docker restart $CONTAINER_NAME
-            rm -f /tmp/wallet-new.jar
-            echo 'Waiting for service...'
-            for i in \$(seq 1 30); do
-              if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1 || \
-                 curl -sf http://localhost:8080/api/wallet/health > /dev/null 2>&1; then
-                echo 'Service healthy'; exit 0
-              fi
-              sleep 3
-            done
-            echo 'Health check skipped (no actuator), deploy done'
-          "
+              set -euo pipefail
+
+              docker cp /tmp/wallet-new.jar $CONTAINER_NAME:/opt/advshop/app.jar
+              docker restart $CONTAINER_NAME
+              rm /tmp/wallet-new.jar
+
+              echo 'Waiting for service...'
+              for i in \$(seq 1 30); do
+                if curl -sf http://localhost:8080/api/wallet/user-1 > /dev/null 2>&1; then
+                  echo 'Service healthy'
+                  exit 0
+                fi
+                sleep 3
+              done
+
+              echo 'Service failed health check'
+              docker logs --tail=100 $CONTAINER_NAME
+              exit 1
+            "
