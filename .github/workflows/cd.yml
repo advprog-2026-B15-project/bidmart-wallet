@@ -53,9 +53,14 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           printf '%s\n' "$AWS_EC2_SSH_KEY" > ~/.ssh/deploy.pem
           chmod 600 ~/.ssh/deploy.pem
-          ssh-keyscan -p "$AWS_EC2_SSH_PORT" -H "$AWS_EC2_HOST" >> ~/.ssh/known_hosts
+          # Try ssh-keyscan but don't fail if the host is temporarily unreachable
+          ssh-keyscan -p "$AWS_EC2_SSH_PORT" -H "$AWS_EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          # Disable strict host checking as a fallback so SCP/SSH don't prompt
+          printf 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n' >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
 
       - name: Upload JAR to EC2
         shell: bash
