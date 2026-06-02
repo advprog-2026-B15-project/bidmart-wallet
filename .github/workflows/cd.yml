@@ -40,7 +40,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build JAR
-        run: ./gradlew bootJar -x test --no-dependency-verification
+        run: ./gradlew --no-dependency-verification bootJar -x test
 
       - name: Validate deployment secrets
         shell: bash
