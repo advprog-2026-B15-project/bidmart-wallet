@@ -1,11 +1,11 @@
 package service;
 
+import com.example.wallet.observer.WalletEventPublisher;
 import com.example.wallet.repository.WalletRepository;
 import com.example.wallet.repository.WalletTransactionRepository;
 import com.example.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 
@@ -16,15 +16,15 @@ class WalletServiceValidationTest {
 
     private WalletRepository walletRepository;
     private WalletTransactionRepository transactionRepository;
-    private ApplicationEventPublisher eventPublisher;
+    private WalletEventPublisher walletEventPublisher;
     private WalletService walletService;
 
     @BeforeEach
     void setUp() {
         walletRepository = mock(WalletRepository.class);
         transactionRepository = mock(WalletTransactionRepository.class);
-        eventPublisher = mock(ApplicationEventPublisher.class);
-        walletService = new WalletService(walletRepository, transactionRepository, eventPublisher);
+        walletEventPublisher = mock(WalletEventPublisher.class);
+        walletService = new WalletService(walletRepository, transactionRepository, walletEventPublisher);
     }
 
     // --- validateAmount ---

@@ -1,12 +1,10 @@
 package service;
 
-import com.example.wallet.event.BalanceHeldEvent;
-import com.example.wallet.event.BalanceReleasedEvent;
-import com.example.wallet.event.PaymentCompletedEvent;
-import com.example.wallet.event.TopUpCompletedEvent;
 import com.example.wallet.model.TransactionType;
 import com.example.wallet.model.Wallet;
 import com.example.wallet.model.WalletTransaction;
+import com.example.wallet.observer.WalletEvent;
+import com.example.wallet.observer.WalletEventPublisher;
 import com.example.wallet.repository.WalletRepository;
 import com.example.wallet.repository.WalletTransactionRepository;
 import com.example.wallet.service.WalletService;
@@ -14,7 +12,6 @@ import com.example.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -30,19 +27,19 @@ class WalletServiceTest {
 
     private WalletRepository walletRepository;
     private WalletTransactionRepository transactionRepository;
-    private ApplicationEventPublisher eventPublisher;
+    private WalletEventPublisher walletEventPublisher;
     private WalletService walletService;
 
     @BeforeEach
     void setUp() {
         walletRepository = mock(WalletRepository.class);
         transactionRepository = mock(WalletTransactionRepository.class);
-        eventPublisher = mock(ApplicationEventPublisher.class);
+        walletEventPublisher = mock(WalletEventPublisher.class);
 
         walletService = new WalletService(
                 walletRepository,
                 transactionRepository,
-                eventPublisher
+                walletEventPublisher
         );
     }
 
@@ -102,13 +99,15 @@ class WalletServiceTest {
         verify(transactionRepository).save(txCaptor.capture());
 
         WalletTransaction tx = txCaptor.getValue();
-
         assertEquals(TransactionType.TOP_UP, tx.getType());
         assertEquals(new BigDecimal("500"), tx.getAmount());
         assertEquals(new BigDecimal("1000"), tx.getBalanceBefore());
         assertEquals(new BigDecimal("1500"), tx.getBalanceAfter());
 
-        verify(eventPublisher).publishEvent(any(TopUpCompletedEvent.class));
+        ArgumentCaptor<WalletEvent> eventCaptor = ArgumentCaptor.forClass(WalletEvent.class);
+        verify(walletEventPublisher).notifyObservers(eventCaptor.capture());
+        assertEquals(WalletEvent.Type.TOP_UP_COMPLETED, eventCaptor.getValue().getType());
+        assertEquals("user-1", eventCaptor.getValue().getUserId());
     }
 
     @Test
@@ -128,11 +127,13 @@ class WalletServiceTest {
         verify(transactionRepository).save(txCaptor.capture());
 
         WalletTransaction tx = txCaptor.getValue();
-
         assertEquals(TransactionType.WITHDRAW, tx.getType());
         assertEquals(new BigDecimal("300"), tx.getAmount());
         assertEquals(new BigDecimal("1000"), tx.getBalanceBefore());
         assertEquals(new BigDecimal("700"), tx.getBalanceAfter());
+
+        // withdraw does not publish an event
+        verify(walletEventPublisher, never()).notifyObservers(any());
     }
 
     @Test
@@ -148,7 +149,6 @@ class WalletServiceTest {
         );
 
         assertEquals("Insufficient balance", exception.getMessage());
-
         verify(transactionRepository, never()).save(any());
     }
 
@@ -173,13 +173,15 @@ class WalletServiceTest {
         verify(transactionRepository).save(txCaptor.capture());
 
         WalletTransaction tx = txCaptor.getValue();
-
         assertEquals(TransactionType.HOLD, tx.getType());
         assertEquals("auction-1", tx.getAuctId());
         assertEquals(new BigDecimal("1000"), tx.getBalanceBefore());
         assertEquals(new BigDecimal("600"), tx.getBalanceAfter());
 
-        verify(eventPublisher).publishEvent(any(BalanceHeldEvent.class));
+        ArgumentCaptor<WalletEvent> eventCaptor = ArgumentCaptor.forClass(WalletEvent.class);
+        verify(walletEventPublisher).notifyObservers(eventCaptor.capture());
+        assertEquals(WalletEvent.Type.BALANCE_HELD, eventCaptor.getValue().getType());
+        assertEquals("auction-1", eventCaptor.getValue().getAuctionId());
     }
 
     @Test
@@ -195,9 +197,8 @@ class WalletServiceTest {
         Wallet result = walletService.holdBalance("user-1", new BigDecimal("400"), "auction-1", "auction-1-user-1-hold");
 
         assertEquals(wallet, result);
-
         verify(transactionRepository, never()).save(any());
-        verify(eventPublisher, never()).publishEvent(any(BalanceHeldEvent.class));
+        verify(walletEventPublisher, never()).notifyObservers(any());
     }
 
     @Test
@@ -217,7 +218,9 @@ class WalletServiceTest {
         assertEquals(new BigDecimal("1000"), wallet.getAvailableBalance());
         assertEquals(BigDecimal.ZERO, wallet.getHeldBalance());
 
-        verify(eventPublisher).publishEvent(any(BalanceReleasedEvent.class));
+        ArgumentCaptor<WalletEvent> eventCaptor = ArgumentCaptor.forClass(WalletEvent.class);
+        verify(walletEventPublisher).notifyObservers(eventCaptor.capture());
+        assertEquals(WalletEvent.Type.BALANCE_RELEASED, eventCaptor.getValue().getType());
     }
 
     @Test
@@ -237,7 +240,9 @@ class WalletServiceTest {
         assertEquals(new BigDecimal("600"), wallet.getAvailableBalance());
         assertEquals(BigDecimal.ZERO, wallet.getHeldBalance());
 
-        verify(eventPublisher).publishEvent(any(PaymentCompletedEvent.class));
+        ArgumentCaptor<WalletEvent> eventCaptor = ArgumentCaptor.forClass(WalletEvent.class);
+        verify(walletEventPublisher).notifyObservers(eventCaptor.capture());
+        assertEquals(WalletEvent.Type.PAYMENT_COMPLETED, eventCaptor.getValue().getType());
     }
 
     @Test
