@@ -75,16 +75,55 @@ jobs:
           ssh -p "$AWS_EC2_SSH_PORT" -i ~/.ssh/deploy.pem \
             "$AWS_EC2_USER@$AWS_EC2_HOST" "
             set -euo pipefail
-            docker cp /tmp/wallet-new.jar $CONTAINER_NAME:/opt/advshop/app.jar
-            docker restart $CONTAINER_NAME
-            rm -f /tmp/wallet-new.jar
-            echo 'Waiting for service...'
-            for i in \$(seq 1 30); do
-              if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1 || \
-                 curl -sf http://localhost:8080/api/wallet/health > /dev/null 2>&1; then
-                echo 'Service healthy'; exit 0
+
+            CONTAINER=$CONTAINER_NAME
+            NEW_JAR=/tmp/wallet-new.jar
+            APP_JAR=/opt/advshop/app.jar
+            BACKUP_JAR=/opt/advshop/app.jar.bak
+
+            # ── helper: wait for the service to become healthy ──────────────
+            wait_healthy() {
+              echo 'Waiting for service to become healthy...'
+              for i in \$(seq 1 30); do
+                if docker exec \$CONTAINER curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1 || \
+                   docker exec \$CONTAINER curl -sf http://localhost:8080/api/wallet/health > /dev/null 2>&1; then
+                  echo 'Service is healthy'
+                  return 0
+                fi
+                echo \"  attempt \$i/30...\"
+                sleep 3
+              done
+              return 1
+            }
+
+            # ── 1. back up the current JAR ───────────────────────────────────
+            echo 'Backing up current JAR...'
+            docker cp \$CONTAINER:\$APP_JAR \$BACKUP_JAR || echo 'No existing JAR to back up (first deploy)'
+
+            # ── 2. deploy the new JAR ────────────────────────────────────────
+            echo 'Deploying new JAR...'
+            docker cp \$NEW_JAR \$CONTAINER:\$APP_JAR
+            docker restart \$CONTAINER
+            rm -f \$NEW_JAR
+
+            # ── 3. health check — rollback on failure ────────────────────────
+            if wait_healthy; then
+              echo 'Deployment successful'
+              rm -f \$BACKUP_JAR
+            else
+              echo 'Health check failed — rolling back to previous JAR...'
+              if [ -f \$BACKUP_JAR ]; then
+                docker cp \$BACKUP_JAR \$CONTAINER:\$APP_JAR
+                docker restart \$CONTAINER
+                echo 'Rollback complete. Checking rolled-back service...'
+                if wait_healthy; then
+                  echo 'Rollback successful — previous version is running'
+                else
+                  echo 'WARNING: rollback deployed but service still unhealthy'
+                fi
+              else
+                echo 'No backup available — cannot roll back'
               fi
-              sleep 3
-            done
-            echo 'Health check skipped (no actuator), deploy done'
+              exit 1
+            fi
           "
